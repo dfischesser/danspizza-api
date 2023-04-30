@@ -18,7 +18,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Configuration.GetConnectionString("Data Source = FUSER; Initial Catalog = PizzaDB; Integrated Security = SSPI; MultipleActiveResultSets = True");
 
 var app = builder.Build();
 

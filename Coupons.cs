@@ -10,5 +10,7 @@
         public int? CouponID { get; set; }
 
         public string? CouponText { get; set; }
+
     }
+
 }

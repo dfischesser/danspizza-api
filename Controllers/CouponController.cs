@@ -4,30 +4,26 @@ using System.Data;
 
 namespace Pizza.Controllers
 {
-    [ApiController]
     [Route("[controller]")]
+    [ApiController]
     public class CouponController : ControllerBase
     {
 
         private readonly ILogger<CouponController> _logger;
 
         private Coupons coupons = new Coupons();
-        private List<Coupon> cp = new List<Coupon>();
+        private List<Coupon> cpList = new List<Coupon>();
 
         public CouponController(ILogger<CouponController> logger)
         {
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetCoupons")]
-        public IEnumerable<Coupon> Get()
+        [HttpGet("Get")]
+        public Coupons Get()
         {
-            SqlConnectionStringBuilder sqlBuilder = new SqlConnectionStringBuilder();
-            sqlBuilder.DataSource = "FUSER";
-            sqlBuilder.UserID = "fuser";
-            sqlBuilder.Password = "goverbose";
-            sqlBuilder.InitialCatalog = "PizzaDB";
-            sqlBuilder.Encrypt = false;
+            SqlTools sqlTools = new SqlTools();
+            SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
             DataSet ds = new DataSet();
 
             using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
@@ -38,12 +34,13 @@ namespace Pizza.Controllers
                     using (SqlDataAdapter da = new SqlDataAdapter())
                     {
                         da.SelectCommand = command;
-                        da.Fill(ds, "test_data");
+                        da.Fill(ds);
                     }
                 }
             }
 
 
+            // TODO: Add Error Logging for Coupons
             if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
             {
                 foreach (DataRow dr in ds.Tables[0].Rows)
@@ -54,12 +51,12 @@ namespace Pizza.Controllers
                         coupon.CouponID = Convert.ToInt32(dr["id"]);
                         coupon.CouponText = string.IsNullOrEmpty(dr["test_data"].ToString()) ? "" : dr["test_data"].ToString();
                     }
-                    cp.Add(coupon);
+                    cpList.Add(coupon);
                 }
             }
-            coupons.CouponList = cp;
+            coupons.CouponList = cpList;
 
-            return coupons.CouponList;
+            return coupons;
         }
     }
 }
