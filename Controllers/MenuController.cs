@@ -71,6 +71,7 @@ namespace Pizza.Controllers
                     fi.FoodID = Convert.ToInt32(dr["id"]);
                     fi.MenuCategoryID = Convert.ToInt32(dr["menu_category_id"]);
                     fi.FoodName = string.IsNullOrEmpty(dr["food"].ToString()) ? "" : dr["food"].ToString();
+                    fi.Price = Convert.ToDecimal(dr["price"]);
                     foodItems.Add(fi);
                 }
             }

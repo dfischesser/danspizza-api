@@ -12,5 +12,6 @@
     {
         public int? ToppingID { get; set; }
         public string? ToppingName { get; set; }
+        public decimal? Price { get; set; }
     }
 }

@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Data;
 using System.Security.AccessControl;
+using System.Globalization;
 
 namespace Pizza.Controllers
 {
@@ -29,7 +31,7 @@ namespace Pizza.Controllers
             {
                 connection.Open();
 
-                // Load Menu Categories from DB
+                // Load Toppings from DB
                 using (SqlCommand command = new SqlCommand("dbo.GetToppings", connection))
                 {
                     using (SqlDataAdapter da = new SqlDataAdapter())
@@ -39,6 +41,7 @@ namespace Pizza.Controllers
                     }
                 }
 
+                //Add toppings to object
                 if (dsToppings.Tables.Count > 0 && dsToppings.Tables[0].Rows.Count > 0)
                 {
                     foreach (DataRow dr in dsToppings.Tables[0].Rows)
@@ -46,6 +49,7 @@ namespace Pizza.Controllers
                         topping = new Topping();
                         topping.ToppingID = Convert.ToInt32(dr["id"]);
                         topping.ToppingName = string.IsNullOrEmpty(dr["topping"].ToString()) ? "" : dr["topping"].ToString();
+                        topping.Price = Convert.ToDecimal(dr["price"]);
                         toppings.Add(topping);
                     }
                 }
