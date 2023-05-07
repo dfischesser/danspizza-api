@@ -28,10 +28,15 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "IIS": {
+    "Pizza": {
       "commandName": "IIS",
+      "workingDirectory": "C:\\dev\\repos\\Pizza\\Pizza",
       "launchBrowser": true,
-      "launchUrl": "swagger"
+      "launchUrl": "https://localhost:443/swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "nativeDebugging": true
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",
@@ -39,7 +44,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iis": {
-      "applicationUrl": "https://localhost:1337",
+      "applicationUrl": "https://localhost:443/",
       "sslPort": 0
     },
     "iisExpress": {

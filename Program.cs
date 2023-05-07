@@ -1,16 +1,17 @@
 using static System.Runtime.InteropServices.JavaScript.JSType;
-string origins = "origins";
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: origins,
+    options.AddPolicy(name: "MyPolicy",
                       policy =>
                       {
-                          policy.AllowAnyOrigin();
+                          policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                       });
 });
+
+builder.Services.AddControllers();
 
 // Add services to the container.
 
@@ -30,7 +31,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors(origins);
+app.UseCors("MyPolicy");
 
 app.UseAuthorization();
 
