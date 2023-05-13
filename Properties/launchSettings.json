@@ -36,7 +36,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "nativeDebugging": true
+      "nativeDebugging": false
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",
