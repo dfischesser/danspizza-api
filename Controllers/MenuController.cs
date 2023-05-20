@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Pizza.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class MenuController : ControllerBase
     {

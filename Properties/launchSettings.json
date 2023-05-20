@@ -32,7 +32,7 @@
       "commandName": "IIS",
       "workingDirectory": "C:\\dev\\repos\\Pizza\\Pizza",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:443/swagger",
+      "launchUrl": "http://localhost:5753/swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
@@ -44,7 +44,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iis": {
-      "applicationUrl": "https://localhost:443/",
+      "applicationUrl": "http://localhost:5753/",
       "sslPort": 0
     },
     "iisExpress": {

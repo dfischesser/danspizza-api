@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Diagnostics;
 
 namespace Pizza.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CouponController : ControllerBase
     {
@@ -19,10 +22,15 @@ namespace Pizza.Controllers
             _logger = logger;
         }
 
+        [EnableCors("MyPolicy")]
         [HttpGet("Get")]
         public Coupons Get()
         {
             SqlTools sqlTools = new SqlTools();
+
+            string url = HttpContext.Request.GetEncodedUrl();
+            Debug.WriteLine(url, "Request URL: ");
+
             SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
             DataSet ds = new DataSet();
 
