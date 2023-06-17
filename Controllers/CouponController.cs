@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -11,60 +10,60 @@ namespace Pizza.Controllers
     [ApiController]
     public class CouponController : ControllerBase
     {
-
-        private readonly ILogger<CouponController> _logger;
+        SqlTools sqlTools = new SqlTools();
 
         private Coupons coupons = new Coupons();
         private List<Coupon> cpList = new List<Coupon>();
 
-        public CouponController(ILogger<CouponController> logger)
+        [HttpGet]
+        [Route("Get")]
+        public IActionResult GetCoupons()
         {
-            _logger = logger;
-        }
-
-        [EnableCors("MyPolicy")]
-        [HttpGet("Get")]
-        public Coupons Get()
-        {
-            SqlTools sqlTools = new SqlTools();
-
-            string url = HttpContext.Request.GetEncodedUrl();
-            Debug.WriteLine(url, "Request URL: ");
-
-            SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
-            DataSet ds = new DataSet();
-
-            using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
+            try
             {
-                connection.Open();
-                using (SqlCommand command = new SqlCommand("dbo.GetTestData", connection))
+                string url = HttpContext.Request.GetEncodedUrl();
+                Debug.WriteLine(url, "Request URL: ");
+
+                SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
+                DataSet ds = new DataSet();
+
+                using (SqlConnection connection = new(sqlBuilder.ConnectionString))
                 {
-                    using (SqlDataAdapter da = new SqlDataAdapter())
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand("dbo.GetCoupons", connection))
                     {
-                        da.SelectCommand = command;
-                        da.Fill(ds);
+                        using (SqlDataAdapter da = new SqlDataAdapter())
+                        {
+                            da.SelectCommand = command;
+                            da.Fill(ds);
+                        }
                     }
                 }
-            }
 
 
-            // TODO: Add Error Logging for Coupons
-            if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
-            {
-                foreach (DataRow dr in ds.Tables[0].Rows)
+                // TODO: Add Error Logging for Coupons
+                if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
                 {
-                    var coupon = new Coupon();
-                    if (dr.ToString() != null)
+                    foreach (DataRow dr in ds.Tables[0].Rows)
                     {
-                        coupon.CouponID = Convert.ToInt32(dr["id"]);
-                        coupon.CouponText = string.IsNullOrEmpty(dr["test_data"].ToString()) ? "" : dr["test_data"].ToString();
+                        var coupon = new Coupon();
+                        if (dr.ToString() != null)
+                        {
+                            coupon.CouponID = Convert.ToInt32(dr["id"]);
+                            coupon.CouponText = string.IsNullOrEmpty(dr["coupon"].ToString()) ? "" : dr["coupon"].ToString();
+                        }
+                        cpList.Add(coupon);
                     }
-                    cpList.Add(coupon);
                 }
-            }
-            coupons.CouponList = cpList;
+                coupons.CouponList = cpList;
 
-            return coupons;
-        }
+                return Ok(coupons);
+            }
+            catch (Exception ex)
+            {
+                sqlTools.Logamuffin("GetCoupon", "Error", "Error Getting Coupon", ex.Message);
+                return NotFound(coupons);
+            }
+        } 
     }
 }

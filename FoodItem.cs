@@ -8,5 +8,7 @@ namespace Pizza
         public int? MenuCategoryID { get; set; }
         public string? FoodName { get; set; }
         public decimal? Price { get; set; }
+        public List<CustomizeOptions>? CustomizeOptions { get; set; } = new List<CustomizeOptions>();
+        public int? OrderItemID { get; set; }
     }
 }
