@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>c:\dev\pizza\pizzaapi</_PublishTargetUrl>
+    <History>True|2023-05-07T02:32:45.0544896Z;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

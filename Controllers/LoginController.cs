@@ -51,7 +51,7 @@ namespace Pizza.Controllers
                 }
                 else
                 {
-                    return NotFound("{\"error\": \"Username or Password is Invalid.\"}");
+                    return NotFound(new {message = "Username or Password is Invalid."});
                 }
             }
             catch (Exception ex) 

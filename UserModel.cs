@@ -7,7 +7,6 @@
         public string? Role { get; set; }
         public string? UserID { get; set; }
         public string? UserFirstName { get; set; }
-        public string? Salt { get; set; }
         
     }
 }

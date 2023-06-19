@@ -53,16 +53,22 @@ namespace Pizza
             return null;
         }
 
+        //new Claim("email", user.Email),
+        //        new Claim("firstName", user.UserFirstName),
+        //        new Claim("role", user.Role),
+        //        new Claim("userID", user.UserID)
+
         private string GenerateToken(UserModel user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
-                new Claim(ClaimTypes.Email, user.Email),
+                new Claim("email", user.Email),
                 new Claim("firstName", user.UserFirstName),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(ClaimTypes.Sid, user.UserID)
+                new Claim("role", user.Role),
+                new Claim("userID", user.UserID)
+
             };
             var token = new JwtSecurityToken(_config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
@@ -102,18 +108,12 @@ namespace Pizza
                                     Password = reader["password"].ToString(),
                                     Role = reader["role"].ToString(),
                                     UserID = reader["id"].ToString(),
-                                    UserFirstName = reader["first_name"].ToString(),
-                                    Salt = reader["salt"].ToString()
+                                    UserFirstName = reader["first_name"].ToString()
                                 };
                             }
                         }
                     }
                 }
-                var test = BCrypt.Net.BCrypt.InterrogateHash(userLogin.Password);
-                var salt = test.RawHash.Remove(22);
-                var hash = test.RawHash.Replace(salt, "");
-                //var decodehash = BCrypt.Net.BCrypt.HashPassword();
-                bool isValid = BCrypt.Net.BCrypt.Verify(userLogin.Password, userModel.Password);
 
 
                 if (userModel != null &&
@@ -141,7 +141,8 @@ namespace Pizza
                 {
                     Email = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value,
                     Role = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value,
-                    UserID = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.Sid)?.Value
+                    UserID = userClaims.FirstOrDefault(x => x.Type == "userID")?.Value,
+                    UserFirstName = userClaims.FirstOrDefault(x => x.Type == "firstName")?.Value
                 };
             };
 

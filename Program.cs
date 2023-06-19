@@ -27,14 +27,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
+        ValidateLifetime = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
-//builder.WebHost.UseUrls("http://*:80");
 SqlTools.conStr = builder.Configuration["ConnectionStrings:AZURE_SQL_CONNECTIONSTRING"];
 
 var app = builder.Build();

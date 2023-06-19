@@ -23,14 +23,71 @@ namespace Pizza.Controllers
             sqlTools = new SqlTools(_config);
         }
 
-        [HttpGet]
-        [Route("Admins")]
-        [Authorize]
-        public IActionResult AdminEndPoint()
+        [HttpPost]
+        [Route("Hash")]
+        public IActionResult GetHash([FromBody] string email)
         {
-            var test = HttpContext.User.Identity;
+            try
+            {
+                SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
+                string hash = "";
+                string firstName = "";
+                string role = "";
+                int roleID = 0;
+                int userID = 0;
+
+                DataSet ds = new DataSet();
+                using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
+                {
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand("dbo.GetHash", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        SqlParameter param = new SqlParameter();
+                        param.ParameterName = "@email";
+                        param.Value = email;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+                        // TODO: Add Error Logging for Users
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                hash = reader["password"].ToString() ?? "";
+                                firstName = reader["first_name"].ToString() ?? "";
+                                roleID = Convert.ToInt32(reader["role_id"].ToString() ?? "");
+                                userID = Convert.ToInt32(reader["id"].ToString() ?? "");
+                            }
+                        }
+                    }
+                }
+                role = _config["Roles:" + roleID] ?? "";
+                return Ok(new { hash, firstName, role, userID});
+            }
+            catch (Exception ex)
+            {
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Account for user " + email, ex.Message);
+                return NotFound(new { message = "Error Getting Account for user " + email });
+            }
+        }
+
+        [HttpPost]
+        [Route("TestAuth")]
+        [Authorize]
+        public IActionResult TestAuth()
+        {
             var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
-            return Ok($"Hi you are an {currentUser.Role}");
+            try
+            {
+                
+                return Ok(new { user =  "Authorized User: " + currentUser.Email });
+            }
+            catch (Exception ex)
+            {
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Account for user " + currentUser.Email, ex.Message);
+                return NotFound(new { message = "Error Getting Account for user " + currentUser.Email });
+            }
         }
 
         [HttpGet]
@@ -196,7 +253,7 @@ namespace Pizza.Controllers
         {
             SqlTools sqlTools = new SqlTools(_config);
             Boolean uniqueEmail = true;
-            string result = "";
+            int userID = 0;
             try
             {
                 SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
@@ -241,18 +298,12 @@ namespace Pizza.Controllers
                             param.DbType = DbType.String;
                             command.Parameters.Add(param);
 
-                            param = new SqlParameter();
-                            param.ParameterName = "@salt";
-                            param.Value = userLogin.Salt;
-                            param.DbType = DbType.String;
-                            command.Parameters.Add(param);
-
                             // TODO: Add Error Logging for Users
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
                                 while (reader.Read())
                                 {
-                                    result = reader["added"].ToString();
+                                    userID = Convert.ToInt32(reader["user_id"]);
                                 }
                             }
                         }
@@ -261,14 +312,7 @@ namespace Pizza.Controllers
 
                         token = sqlTools.TryLogin(userLogin);
 
-                        CookieOptions cookie = new()
-                        {
-                            Expires = DateTimeOffset.Now.AddDays(15),
-                            MaxAge = TimeSpan.FromDays(15)
-                        };
-                        Response.Cookies.Append("token", token.UserToken, cookie);
-
-                        return Ok(token);
+                        return Ok(userID);
                     }
                     else
                     {
@@ -359,28 +403,11 @@ namespace Pizza.Controllers
                         param.DbType = DbType.String;
                         command.Parameters.Add(param);
 
-                        // TODO: Add Error Logging for Users
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                email = reader["email"].ToString();
-                                password = reader["password"].ToString();
-                            }
-                        }
+                        command.ExecuteNonQuery();
                     }
                 }
-                Token token = new Token();
-
-                token = sqlTools.TryLogin(new UserLogin() { Email = email, Password = password});
-
-                CookieOptions cookie = new()
-                {
-                    Expires = DateTimeOffset.Now.AddDays(15),
-                    MaxAge = TimeSpan.FromDays(15)
-                };
-                Response.Cookies.Append("token", token.UserToken, cookie);
-                return Ok(token);
+                
+                return Ok(new { message = "Create Account Step 2 Complete"});
 
             }
             catch (Exception ex)
