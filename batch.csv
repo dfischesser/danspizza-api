@@ -1,0 +1,118 @@
+﻿food_type,menu_category_id,food,customize_option,food_id,customize_option_item,price,is_multi_select,is_default_option
+Pizza,1,Hand-Tossed Pizza,Size,1,Small,16.99,0,1
+Pasta,1,Thin Crust Pizza,Size,1,Large,18.99,0,1
+Salad,1,Sicilian Pizza,Size,1,X-Large,20.99,0,1
+Soup,2,Pasta Francese,Toppings,1,Cheese,0,1,0
+Sides,2,Pasta Marsala,Toppings,1,Extra Cheese,2,1,0
+Dessert,2,Pasta Alfredo,Toppings,1,Pepperoni,2,1,0
+,3,Side Salad,Toppings,1,Sausage,2,1,0
+,3,House Salad,Toppings,1,Ham,2,1,0
+,3,Caesar Salad,Toppings,1,Olives,2,1,0
+,4,Pasta E Fagioli,Toppings,1,Mushrooms,2,1,0
+,4,Minestrone,Toppings,1,Pineapple,2,1,0
+,5,Fries,Size,2,Medium,16.99,0,1
+,5,Wings,Size,2,Large,18.99,0,1
+,5,Drinks,Size,2,X-Large,20.99,0,1
+,6,NY Cheesecake,Toppings,2,Cheese,0,1,0
+,6,Cannoli,Toppings,2,Extra Cheese,2,1,0
+,6,Ice Cream,Toppings,2,Pepperoni,2,1,0
+,,,Toppings,2,Sausage,2,1,0
+,,,Toppings,2,Ham,2,1,0
+,,,Toppings,2,Olives,2,1,0
+,,,Toppings,2,Mushrooms,2,1,0
+,,,Toppings,2,Pineapple,2,1,0
+,,,Size,3,Large,18.99,0,1
+,,,Size,3,X-large,20.99,0,1
+,,,Toppings,3,Cheese,0,1,0
+,,,Toppings,3,Extra Cheese,2,1,0
+,,,Toppings,3,Pepperoni,2,1,0
+,,,Toppings,3,Sausage,2,1,0
+,,,Toppings,3,Ham,1,1,0
+,,,Toppings,3,Olives,1,1,0
+,,,Toppings,3,Mushrooms,1,1,0
+,,,Toppings,3,Pineapple,1,1,0
+,,,Size,4,Small,12.99,0,1
+,,,Size,4,Large,14.99,0,1
+,,,Meat,4,None,0,0,0
+,,,Meat,4,Chicken,2.5,0,0
+,,,Meat,4,Veal,3.25,0,0
+,,,Size,5,Small,12.99,0,1
+,,,Size,5,Large,14.99,0,1
+,,,Meat,5,None,0,0,0
+,,,Meat,5,Chicken,2.5,0,0
+,,,Meat,5,Veal,3.25,0,0
+,,,Size,6,Small,12.99,0,1
+,,,Size,6,Large,14.99,0,1
+,,,Meat,6,None,0,0,0
+,,,Meat,6,Chicken,2.5,0,0
+,,,Meat,6,Veal,3.25,0,0
+,,,Dressing,7,None,0,0,0
+,,,Dressing,7,Ranch,0,0,0
+,,,Dressing,7,Blue Cheese,0,0,0
+,,,Dressing,7,Viniagrette,0,0,0
+,,,Dressing,7,Thousand Island,0,0,0
+,,,Dressing,7,Caesar,0,0,0
+,,,Side Salad,7,Side Salad,4.99,0,0
+,,,Dressing,8,None,0,0,0
+,,,Dressing,8,Ranch,0,0,0
+,,,Dressing,8,Blue Cheese,0,0,0
+,,,Dressing,8,Viniagrette,0,0,0
+,,,Dressing,8,Thousand Island,0,0,0
+,,,Dressing,8,Caesar,0,0,0
+,,,Customize,8,Tomatoes,0,1,0
+,,,Customize,8,Croutons,0,1,0
+,,,Customize,8,Cheddar Cheese,0,1,0
+,,,Customize,8,Cucumber,0,1,0
+,,,Customize,8,Red Onions,0,1,0
+,,,Customize,8,Bacon,0,1,0
+,,,House Salad,8,House Salad,11.99,0,0
+,,,Dressing,9,None,0,0,0
+,,,Dressing,9,Caesar,0,0,0
+,,,Meat,9,None,0,0,0
+,,,Meat,9,Chicken,2.5,0,0
+,,,Meat,9,Veal,3.25,0,0
+,,,Customize,9,Parmesan Cheese,0,1,0
+,,,Customize,9,Anchovies,0,1,0
+,,,Customize,9,Croutons,0,1,0
+,,,Caesar Salad,9,Caesar Salad,11.99,0,0
+,,,Size,10,Cup,4.99,0,1
+,,,Size,10,Bowl,6.99,0,1
+,,,Size,11,Cup,4.99,0,1
+,,,Size,11,Bowl,6.99,0,1
+,,,Dipping Sauce,12,Ketchup,0,0,0
+,,,Dipping Sauce,12,Barbeque,0.99,0,0
+,,,Dipping Sauce,12,Ranch,0.99,0,0
+,,,Dipping Sauce,12,Honey Mustard,0.99,0,0
+,,,Fries,12,Fries,4.99,0,0
+,,,Amount,13,Five Wings,5.99,0,1
+,,,Amount,13,Ten Wings,11.99,0,1
+,,,Dipping Sauce,13,Ranch,0,0,0
+,,,Dipping Sauce,13,Blue Cheese,0,0,0
+,,,Wing Sauce,13,Mild,0,0,0
+,,,Wing Sauce,13,Hot,0,0,0
+,,,Wing Sauce,13,Barbeque,0,0,0
+,,,Wing Sauce,13,Mango Habanero,0,0,0
+,,,Wing Sauce,13,Garlic Pepper,0,0,0
+,,,Two Liter Beverages,14,Coke,2.99,0,0
+,,,Two Liter Beverages,14,Diet Coke,2.99,0,0
+,,,Two Liter Beverages,14,Sprite,2.99,0,0
+,,,12 oz Cans,14,Coke,1.25,0,0
+,,,12 oz Cans,14,Diet Coke,1.25,0,0
+,,,12 oz Cans,14,Coke Zero,1.25,0,0
+,,,12 oz Cans,14,Sprite,1.25,0,0
+,,,12 oz Cans,14,Diet Sprite,1.25,0,0
+,,,12 oz Cans,14,Root Beer,1.25,0,0
+,,,12 oz Cans,14,Cream Soda,1.25,0,0
+,,,Fountain,14,Coke,1.99,0,0
+,,,Fountain,14,Diet Coke,1.99,0,0
+,,,Fountain,14,Coke Zero,1.99,0,0
+,,,Fountain,14,Sprite,1.99,0,0
+,,,Fountain,14,Diet Sprite,1.99,0,0
+,,,Fountain,14,Iced Tea,1.99,0,0
+,,,Fountain,14,Fresh Lemonade,1.99,0,0
+,,,NY Cheesecake,15,NY Cheesecake,4.99,0,0
+,,,Cannoli,16,Cannoli,4.99,0,0
+,,,Ice Cream,17,Vanilla,3.99,0,0
+,,,Ice Cream,17,Chocolate,3.99,0,0
+,,,Ice Cream,17,Strawberry,3.99,0,0
+,,,Ice Cream,17,Cookies & Cream,3.99,0,0

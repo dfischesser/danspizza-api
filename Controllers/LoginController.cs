@@ -2,16 +2,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Net.Http.Headers;
 using Pizza;
+using System;
 using System.Buffers.Text;
 using System.Data;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web.Http.Results;
 
 namespace Pizza.Controllers
 {
@@ -36,18 +40,22 @@ namespace Pizza.Controllers
             Token token = new Token();
             try
             {
+                var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
                 token = sqlTools.TryLogin(userLogin);
 
                 if (token != null)
                 {
-                    CookieOptions cookie = new()
+                    CookieOptions cookieOptions = new()
                     {
                         Expires = DateTimeOffset.Now.AddDays(15),
-                        MaxAge = TimeSpan.FromDays(15)
+                        MaxAge = TimeSpan.FromDays(15),
+                        HttpOnly = true
                     };
-                    Response.Cookies.Append("token", token.UserToken, cookie);
+                    var response = new HttpResponseMessage();
 
-                    return Ok(token);
+                    HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+
+                    return Ok(new {message = "Login Success"});
                 }
                 else
                 {

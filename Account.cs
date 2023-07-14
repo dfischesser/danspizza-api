@@ -13,6 +13,7 @@
         public string? City { get; set; }
         public string? State { get; set; }
         public string? Zip { get; set; }
+        public int? OrderCount { get; set; }
         public List<Order>? ActiveOrders { get; set; }
         public List<Order>? PastOrders { get; set; }
     }

@@ -85,7 +85,6 @@ namespace Pizza.Controllers
                         fi.FoodID = Convert.ToInt32(dr["id"]);
                         fi.MenuCategoryID = Convert.ToInt32(dr["menu_category_id"]);
                         fi.FoodName = string.IsNullOrEmpty(dr["food"].ToString()) ? "" : dr["food"].ToString();
-                        fi.Price = Convert.ToDecimal(dr["price"]);
                         fi.CustomizeOptions = new List<CustomizeOptions>();
                         foodItems.Add(fi);
                     }
@@ -100,12 +99,18 @@ namespace Pizza.Controllers
                         CustomizeItem c = new CustomizeItem();
                         c.FoodID = Convert.ToInt32(dr["food_id"]);
                         c.CustomizeOption = dr["customize_option"].ToString();
+                        c.OptionID = Convert.ToInt32(dr["customize_option_id"]);
                         c.CustomizeOptionItem = dr["customize_option_item"].ToString();
+                        c.CustomizeOptionItemID = Convert.ToInt32(dr["customize_option_item_id"]);
                         c.Price = Convert.ToDecimal(dr["price"]);
-                        c.IsMultiSelect = Convert.ToInt32(dr["is_multi_select"]);
+                        c.IsMultiSelect = Convert.ToBoolean(dr["is_multi_select"]);
+                        c.IsDefaultOption = Convert.ToBoolean(dr["is_default_option"]);
+                        c.CustomizeOptionOrder = Convert.ToInt32(dr["option_order"]);
                         customizeItems.Add(c);
                     }
                 }
+
+                customizeItems = customizeItems.OrderBy(x => x.FoodID).OrderByDescending(x => x.IsDefaultOption).ToList();
 
                 CustomizeOptions customizeOptions = new CustomizeOptions();
                 var customizeOptionsList = new List<CustomizeOptions>();
@@ -128,6 +133,8 @@ namespace Pizza.Controllers
                                 new CustomizeOptions() { 
                                     OptionName = customizeItem.CustomizeOption, 
                                     IsMultiSelect = customizeItem.IsMultiSelect,
+                                    IsDefaultOption = customizeItem.IsDefaultOption,
+                                    OptionID = customizeItem.OptionID,
                                     OptionItems = new List<CustomizeItem>() { customizeItem } 
                                 });
                         }

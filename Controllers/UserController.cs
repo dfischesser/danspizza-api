@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Net.Sockets;
@@ -63,7 +65,7 @@ namespace Pizza.Controllers
                     }
                 }
                 role = _config["Roles:" + roleID] ?? "";
-                return Ok(new { hash, firstName, role, userID});
+                return Ok(new { hash, firstName, role, userID });
             }
             catch (Exception ex)
             {
@@ -73,20 +75,28 @@ namespace Pizza.Controllers
         }
 
         [HttpPost]
-        [Route("TestAuth")]
+        [Route("OrderPage")]
         [Authorize]
-        public IActionResult TestAuth()
+        public IActionResult OrderPage([FromBody] int page)
         {
             var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
             try
             {
-                
-                return Ok(new { user =  "Authorized User: " + currentUser.Email });
+                var allOrders = new AllOrders();
+                var orders = new List<Order>();
+                SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
+
+                using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
+                {
+                    connection.Open();
+                    GetUserOrders(allOrders, currentUser, connection, page);
+                }
+                return Ok(allOrders.pastOrders);
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Account", "Error", "Error Getting Account for user " + currentUser.Email, ex.Message);
-                return NotFound(new { message = "Error Getting Account for user " + currentUser.Email });
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Order Page " + page + " for user " + currentUser.Email, ex.Message);
+                return NotFound(new { message = "Error Getting Order Page " + page + " for user " + currentUser.Email });
             }
         }
 
@@ -122,119 +132,30 @@ namespace Pizza.Controllers
                         {
                             while (reader.Read())
                             {
-                                if (Convert.ToInt32(reader["id"]) == Convert.ToInt32(currentUser.UserID))
-                                {
-                                    account.UserID = Convert.ToInt32(reader["id"]);
-                                    account.Role = currentUser.Role;
-                                    account.FirstName = string.IsNullOrEmpty(reader["first_name"].ToString()) ? "" : reader["first_name"].ToString();
-                                    account.LastName = string.IsNullOrEmpty(reader["last_name"].ToString()) ? "" : reader["last_name"].ToString();
-                                    account.Email = string.IsNullOrEmpty(reader["email"].ToString()) ? "" : reader["email"].ToString();
-                                    account.Phone = string.IsNullOrEmpty(reader["phone"].ToString()) ? "" : reader["phone"].ToString();
-                                    account.Address1 = string.IsNullOrEmpty(reader["address1"].ToString()) ? "" : reader["address1"].ToString();
-                                    account.Address2 = string.IsNullOrEmpty(reader["address2"].ToString()) ? "" : reader["address2"].ToString();
-                                    account.City = string.IsNullOrEmpty(reader["city"].ToString()) ? "" : reader["city"].ToString();
-                                    account.State = string.IsNullOrEmpty(reader["state"].ToString()) ? "" : reader["state"].ToString();
-                                    account.Zip = string.IsNullOrEmpty(reader["zip"].ToString()) ? "" : reader["zip"].ToString();
-                                }
+                                account.UserID = Convert.ToInt32(currentUser.UserID);
+                                account.Role = currentUser.Role;
+                                account.FirstName = string.IsNullOrEmpty(reader["first_name"].ToString()) ? "" : reader["first_name"].ToString();
+                                account.LastName = string.IsNullOrEmpty(reader["last_name"].ToString()) ? "" : reader["last_name"].ToString();
+                                account.Email = string.IsNullOrEmpty(reader["email"].ToString()) ? "" : reader["email"].ToString();
+                                account.Phone = string.IsNullOrEmpty(reader["phone"].ToString()) ? "" : reader["phone"].ToString();
+                                account.Address1 = string.IsNullOrEmpty(reader["address1"].ToString()) ? "" : reader["address1"].ToString();
+                                account.Address2 = string.IsNullOrEmpty(reader["address2"].ToString()) ? "" : reader["address2"].ToString();
+                                account.City = string.IsNullOrEmpty(reader["city"].ToString()) ? "" : reader["city"].ToString();
+                                account.State = string.IsNullOrEmpty(reader["state"].ToString()) ? "" : reader["state"].ToString();
+                                account.Zip = string.IsNullOrEmpty(reader["zip"].ToString()) ? "" : reader["zip"].ToString();
+                                
                             }
                         }
                     }
 
-                    using (SqlCommand command = new SqlCommand("dbo.GetUserOrders", connection))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
-                        SqlParameter param = new SqlParameter();
-                        param.ParameterName = "@user_id";
-                        param.Value = Convert.ToInt32(currentUser.UserID);
-                        param.DbType = DbType.Int32;
-                        command.Parameters.Add(param);
-                        // TODO: Add Error Logging for Users
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                var order = new Order();
-                                order.Active = Convert.ToInt32(reader["active"]);
-                                order.OrderID = Convert.ToInt32(reader["id"]);
-                                orders.Add(order);
-                            }
-                        }
-                    }
+                    AllOrders allOrders = new AllOrders();
 
-                    foreach (var item in orders)
-                    {
-                        using (SqlCommand command = new SqlCommand("dbo.GetOrderItems", connection))
-                        {
-                            command.CommandType = CommandType.StoredProcedure;
-                            SqlParameter param = new SqlParameter();
-                            param.ParameterName = "@order_id";
-                            param.Value = item.OrderID;
-                            param.DbType = DbType.Int32;
-                            command.Parameters.Add(param);
-                            // TODO: Add Error Logging for Users
-                            using (SqlDataReader reader = command.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    var food = new FoodItem();
-                                    food.FoodID = Convert.ToInt32(reader["food_id"]);
-                                    food.FoodName = reader["food_name"].ToString();
-                                    food.OrderItemID = Convert.ToInt32(reader["id"]);
-                                    item.FoodItems.Add(food);
-                                }
-                            }
-                        }
+                    GetUserOrders(allOrders, currentUser, connection, 1);
 
-                        foreach (var foodItem in item.FoodItems)
-                        {
-                            using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptions", connection))
-                            {
-                                command.CommandType = CommandType.StoredProcedure;
-                                SqlParameter param = new SqlParameter();
-                                param.ParameterName = "@order_item_id";
-                                param.Value = foodItem.OrderItemID;
-                                param.DbType = DbType.Int32;
-                                command.Parameters.Add(param);
-                                // TODO: Add Error Logging for Users
-                                using (SqlDataReader reader = command.ExecuteReader())
-                                {
-                                    while (reader.Read())
-                                    {
-                                        var option = new CustomizeOptions();
-                                        option.OptionName = reader["option_name"].ToString();
-                                        option.OrderItemOptionID = Convert.ToInt32(reader["id"]);
-                                        foodItem.CustomizeOptions.Add(option);
-                                    }
-                                }
-                            }
+                    account.ActiveOrders = allOrders.activeOrders.OrderByDescending(x => x.Created).ToList();
+                    account.PastOrders = allOrders.pastOrders.OrderByDescending(x => x.Created).ToList();
+                    account.OrderCount = allOrders.OrderCount;
 
-                            foreach (var option in foodItem.CustomizeOptions)
-                            {
-                                using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptionItems", connection))
-                                {
-                                    command.CommandType = CommandType.StoredProcedure;
-                                    SqlParameter param = new SqlParameter();
-                                    param.ParameterName = "@order_item_option_id";
-                                    param.Value = option.OrderItemOptionID;
-                                    param.DbType = DbType.Int32;
-                                    command.Parameters.Add(param);
-                                    // TODO: Add Error Logging for Users
-                                    using (SqlDataReader reader = command.ExecuteReader())
-                                    {
-                                        while (reader.Read())
-                                        {
-                                            var customizeItem = new CustomizeItem();
-                                            customizeItem.CustomizeOptionItem = reader["order_item_option_item_name"].ToString();
-                                            customizeItem.Price = Convert.ToDecimal(reader["price"]);
-                                            option.OptionItems.Add(customizeItem);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    account.PastOrders = orders.Where(order => order.Active == 0).ToList();
-                    account.ActiveOrders = orders.Where(order => order.Active == 1).ToList();
                 }
                 sqlTools.Logamuffin("Account (GetUserByEmail)", "System", "Retrieved Account for " + account.Email + ". User ID: " + account.UserID);
                 return Ok(account);
@@ -246,10 +167,162 @@ namespace Pizza.Controllers
             }
         }
 
+        public static void FillOrders(List<Order> orders, SqlConnection connection)
+        {
+            foreach (var item in orders)
+            {
+                using (SqlCommand command = new SqlCommand("dbo.GetOrderItems", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    SqlParameter param = new SqlParameter();
+                    param.ParameterName = "@order_id";
+                    param.Value = item.OrderID;
+                    param.DbType = DbType.Int32;
+                    command.Parameters.Add(param);
+                    // TODO: Add Error Logging for Users
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var food = new FoodItem();
+                            food.FoodID = Convert.ToInt32(reader["food_id"]);
+                            food.FoodName = reader["food_name"].ToString();
+                            food.OrderItemID = Convert.ToInt32(reader["id"]);
+                            food.Price = 0;
+                            item.FoodItems.Add(food);
+                        }
+                    }
+                }
+
+                foreach (var foodItem in item.FoodItems)
+                {
+                    using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptions", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        SqlParameter param = new SqlParameter();
+                        param.ParameterName = "@order_item_id";
+                        param.Value = foodItem.OrderItemID;
+                        param.DbType = DbType.Int32;
+                        command.Parameters.Add(param);
+                        // TODO: Add Error Logging for Users
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var option = new CustomizeOptions();
+                                option.OptionName = reader["option_name"].ToString();
+                                option.OrderItemOptionID = Convert.ToInt32(reader["id"]);
+                                foodItem.CustomizeOptions.Add(option);
+                            }
+                        }
+                    }
+
+                    foreach (var option in foodItem.CustomizeOptions)
+                    {
+                        using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptionItems", connection))
+                        {
+                            command.CommandType = CommandType.StoredProcedure;
+                            SqlParameter param = new SqlParameter();
+                            param.ParameterName = "@order_item_option_id";
+                            param.Value = option.OrderItemOptionID;
+                            param.DbType = DbType.Int32;
+                            command.Parameters.Add(param);
+                            // TODO: Add Error Logging for Users
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    var customizeItem = new CustomizeItem();
+                                    customizeItem.CustomizeOptionItem = reader["order_item_option_item_name"].ToString();
+                                    customizeItem.Price = Convert.ToDecimal(reader["price"]);
+                                    item.totalPrice += Convert.ToDecimal(reader["price"]);
+                                    foodItem.Price += Convert.ToDecimal(reader["price"]);
+                                    option.OptionItems.Add(customizeItem);
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void GetUserOrders(AllOrders allOrders, UserModel currentUser, SqlConnection connection, int page)
+        {
+
+            var dsOrders = new DataSet();
+            try
+            {
+                using (SqlCommand command = new SqlCommand("dbo.GetUserOrders", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    SqlParameter param = new SqlParameter();
+                    param.ParameterName = "@user_id";
+                    param.Value = Convert.ToInt32(currentUser.UserID);
+                    param.DbType = DbType.Int32;
+                    command.Parameters.Add(param);
+
+                    param = new SqlParameter();
+                    param.ParameterName = "@page";
+                    param.Value = page;
+                    param.DbType = DbType.Int32;
+                    command.Parameters.Add(param);
+
+                    SqlDataAdapter adapter = new SqlDataAdapter();
+                    adapter.SelectCommand = command;
+                    adapter.Fill(dsOrders);
+
+                    if (dsOrders.Tables.Count > 2)
+                    {
+                        if (dsOrders.Tables[0].Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dsOrders.Tables[0].Rows)
+                            {
+                                var order = new Order();
+                                order.OrderID = Convert.ToInt32(row["id"]);
+                                order.Created = Convert.ToDateTime(row["created_on"]);
+                                order.totalPrice = 0;
+                                allOrders.activeOrders.Add(order);
+                            }
+                        }
+
+                        if (dsOrders.Tables[1].Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dsOrders.Tables[1].Rows)
+                            {
+                                var order = new Order();
+                                order.OrderID = Convert.ToInt32(row["id"]);
+                                order.Created = Convert.ToDateTime(row["created_on"]);
+                                order.totalPrice = 0;
+
+                                allOrders.pastOrders.Add(order);
+                            }
+                        }
+
+                        if (dsOrders.Tables[2].Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dsOrders.Tables[2].Rows)
+                            {
+                                allOrders.OrderCount = Convert.ToInt32(row["past_order_count"]);
+                            }
+                        }
+                    }
+                }
+                FillOrders(allOrders.activeOrders, connection);
+                FillOrders(allOrders.pastOrders, connection);
+
+            } 
+            catch (Exception ex)
+            {
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Orders for user " + currentUser.Email, ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("Create")]
         [AllowAnonymous]
-        public IActionResult CreateUser(UserLogin userLogin)
+        public IActionResult CreateUser([FromBody] UserLogin userLogin)
         {
             SqlTools sqlTools = new SqlTools(_config);
             Boolean uniqueEmail = true;
@@ -283,6 +356,7 @@ namespace Pizza.Controllers
                     }
                     if (uniqueEmail)
                     {
+                        string hash = BCrypt.Net.BCrypt.HashPassword(userLogin.Password);
                         using (SqlCommand command = new SqlCommand("dbo.CreateUser", connection))
                         {
                             command.CommandType = CommandType.StoredProcedure;
@@ -294,7 +368,7 @@ namespace Pizza.Controllers
 
                             param = new SqlParameter();
                             param.ParameterName = "@password";
-                            param.Value = userLogin.Password;
+                            param.Value = hash;
                             param.DbType = DbType.String;
                             command.Parameters.Add(param);
 
@@ -312,7 +386,22 @@ namespace Pizza.Controllers
 
                         token = sqlTools.TryLogin(userLogin);
 
-                        return Ok(userID);
+
+                        if (token != null)
+                        {
+                            CookieOptions cookieOptions = new()
+                            {
+                                Expires = DateTimeOffset.Now.AddDays(15),
+                                MaxAge = TimeSpan.FromDays(15),
+                                HttpOnly = true
+                            };
+                            var response = new HttpResponseMessage();
+
+                            HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+
+                        }
+
+                        return Ok(new { message = "Login Success" });
                     }
                     else
                     {
@@ -335,10 +424,10 @@ namespace Pizza.Controllers
         {
             SqlTools sqlTools = new SqlTools(_config);
             var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
+            string? email = "";
+            string? role = "";
 
             Account user = JsonConvert.DeserializeObject<Account>(step2details.ToString());
-            string email = "";
-            string password = "";
             try
             {
                 SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
@@ -403,11 +492,35 @@ namespace Pizza.Controllers
                         param.DbType = DbType.String;
                         command.Parameters.Add(param);
 
-                        command.ExecuteNonQuery();
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            email = reader["email"].ToString();
+                            role = reader["role"].ToString();
+                        }
                     }
                 }
-                
-                return Ok(new { message = "Create Account Step 2 Complete"});
+
+                Token token = new();
+
+                token = sqlTools.Step2Token(new UserModel { UserID = currentUser.UserID, UserFirstName = user.FirstName, Role = role, Email = email});
+
+                if (token != null)
+                {
+                    CookieOptions cookieOptions = new()
+                    {
+                        Expires = DateTimeOffset.Now.AddDays(15),
+                        MaxAge = TimeSpan.FromDays(15),
+                        HttpOnly = true
+                    };
+                    var response = new HttpResponseMessage();
+
+                    HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+
+                }
+
+                return Ok(new { message = "Login Success" });
+
 
             }
             catch (Exception ex)

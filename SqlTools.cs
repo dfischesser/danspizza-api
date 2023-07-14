@@ -53,6 +53,11 @@ namespace Pizza
             return null;
         }
 
+        public Token Step2Token(UserModel userModel)
+        {
+            return new Token() { UserToken = GenerateToken(userModel) };
+        }
+
         //new Claim("email", user.Email),
         //        new Claim("firstName", user.UserFirstName),
         //        new Claim("role", user.Role),
@@ -89,36 +94,73 @@ namespace Pizza
                 using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
                 {
                     connection.Open();
-                    using (SqlCommand command = new SqlCommand("dbo.GetUserByEmail", connection))
+                    if (userLogin.Email != null)
                     {
-                        command.CommandType = CommandType.StoredProcedure;
-                        SqlParameter param = new SqlParameter();
-                        param.ParameterName = "@email";
-                        param.Value = userLogin.Email;
-                        param.DbType = DbType.String;
-                        command.Parameters.Add(param);
-                        // TODO: Add Error Logging for Users
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        using (SqlCommand command = new SqlCommand("dbo.GetUserByEmail", connection))
                         {
-                            while (reader.Read())
+                            command.CommandType = CommandType.StoredProcedure;
+                            SqlParameter param = new SqlParameter();
+                            param.ParameterName = "@email";
+                            param.Value = userLogin.Email;
+                            param.DbType = DbType.String;
+                            command.Parameters.Add(param);
+                            // TODO: Add Error Logging for Users
+                            using (SqlDataReader reader = command.ExecuteReader())
                             {
-                                userModel = new UserModel()
+                                while (reader.Read())
                                 {
-                                    Email = reader["email"].ToString(),
-                                    Password = reader["password"].ToString(),
-                                    Role = reader["role"].ToString(),
-                                    UserID = reader["id"].ToString(),
-                                    UserFirstName = reader["first_name"].ToString()
-                                };
+                                    userModel = new UserModel()
+                                    {
+                                        Email = reader["email"].ToString(),
+                                        Password = reader["password"].ToString(),
+                                        Role = reader["role"].ToString(),
+                                        UserID = reader["id"].ToString(),
+                                        UserFirstName = reader["first_name"].ToString()
+                                    };
+                                }
                             }
                         }
                     }
+                    else if (userLogin.Id != null)
+                    {
+                        using (SqlCommand command = new SqlCommand("dbo.GetUserById", connection))
+                        {
+                            command.CommandType = CommandType.StoredProcedure;
+                            SqlParameter param = new SqlParameter();
+                            param.ParameterName = "@id";
+                            param.Value = userLogin.Id;
+                            param.DbType = DbType.Int32;
+                            command.Parameters.Add(param);
+                            // TODO: Add Error Logging for Users
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    userModel = new UserModel()
+                                    {
+                                        Email = reader["email"].ToString(),
+                                        Password = reader["password"].ToString(),
+                                        Role = reader["role"].ToString(),
+                                        UserID = reader["id"].ToString(),
+                                        UserFirstName = reader["first_name"].ToString()
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+                bool IsValid = false;
+                if (userModel != null)
+                {
+                    IsValid = BCrypt.Net.BCrypt.Verify(userLogin.Password, userModel.Password);
+                }
+                else
+                {
+                    IsValid = false;
                 }
 
-
-                if (userModel != null &&
-                    userModel.Email == userLogin.Email &&
-                    userModel.Password == userLogin.Password)
+                if (IsValid)
                 {
                     Logamuffin("Login", "System", "User Logged In: " + userModel.Email + ". Role: " + userModel.Role);
                     return userModel;

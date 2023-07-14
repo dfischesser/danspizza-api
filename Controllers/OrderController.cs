@@ -164,12 +164,38 @@ namespace Pizza.Controllers
         }
 
         [HttpPost]
+        [Route("OrderPage")]
+        [Authorize(Roles = "Employee")]
+        public IActionResult OrderPage([FromBody] int page)
+        {
+            var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
+            try
+            {
+                var allOrders = new AllOrders();
+                var orders = new List<Order>();
+                SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
+
+                using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
+                {
+                    connection.Open();
+                    allOrders = GetLatestOrders(connection, page);
+                }
+                return Ok(allOrders.activeOrders);
+            }
+            catch (Exception ex)
+            {
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Order Page " + page + " for user " + currentUser.Email, ex.Message);
+                return NotFound(new { message = "Error Getting Order Page " + page + " for user " + currentUser.Email });
+            }
+        }
+
+        [HttpPost]
         [Authorize(Roles = "Employee")]
         [Route("Fulfill")]
         public IActionResult FulfillOrder([FromBody] Object orderID)
         {
             var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
-            var rows = 0;
+            var allOrders = new AllOrders();
             try
             {
                 SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
@@ -191,20 +217,11 @@ namespace Pizza.Controllers
                         // TODO: Add Error Logging for Users
                         command.ExecuteNonQuery();
                     }
+                allOrders = GetLatestOrders(connection);
                 }
-            } catch (Exception ex)
-            {
-                sqlTools.Logamuffin("Fulfill Order (FullfillOrder)", "Error", "Error Fulfilling order for: " + currentUser.Email, ex.Message);
-                return NotFound("Order failed to fulfill");
-            }
-
-            try
-            {
-                var orders = GetLatestOrders();
                 sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "System", "Retrieved Orders for " + currentUser.UserID);
-                return Ok(orders);
-                
-            }
+                return Ok(allOrders.activeOrders);
+            } 
             catch (Exception ex)
             {
                 sqlTools.Logamuffin("Fulfill Order (FullfillOrder)", "Error", "Error Fulfilling order for: " + currentUser.Email, ex.Message);
@@ -219,11 +236,18 @@ namespace Pizza.Controllers
         public IActionResult GetOrders()
         {
             var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
+            var allOrders = new AllOrders();
             try
             {
-                var orders = GetLatestOrders();
+                SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
+
+                using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
+                {
+                    connection.Open();
+                    allOrders = GetLatestOrders(connection);
+                }
                 sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "System", "Retrieved Orders for " + currentUser.UserID);
-                return Ok(orders);
+                return Ok(allOrders);
             }
             catch (Exception ex)
             {
@@ -232,112 +256,126 @@ namespace Pizza.Controllers
             }
         }
         
-        private List<Order> GetLatestOrders()
+        private AllOrders GetLatestOrders(SqlConnection connection, int page = 1)
         {
             SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
 
-            DataSet ds = new DataSet();
             var orders = new List<Order>();
-            using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
+            var allOrders = new AllOrders();
+            var dsOrders = new DataSet();
+
+            using (SqlCommand command = new SqlCommand("dbo.GetLatestOrders", connection))
             {
-                var OrderIDs = new List<int>();
-                var customizeIDs = new List<int>();
-                connection.Open();
+                command.CommandType = CommandType.StoredProcedure;
 
-                using (SqlCommand command = new SqlCommand("dbo.GetLatestOrders", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    // TODO: Add Error Logging for Users
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            var order = new Order();
-                            order.OrderID = Convert.ToInt32(reader["id"]);
-                            order.UserID = Convert.ToInt32(reader["user_id"]);
-                            orders.Add(order);
-                        }
-                    }
-                }
+                SqlParameter param = new SqlParameter();
+                param.ParameterName = "@page";
+                param.Value = page;
+                param.DbType = DbType.Int32;
+                command.Parameters.Add(param);
 
-                foreach (var item in orders)
+                SqlDataAdapter adapter = new SqlDataAdapter();
+                adapter.SelectCommand = command;
+                adapter.Fill(dsOrders);
+
+                if (dsOrders.Tables.Count > 1 && dsOrders.Tables[0].Rows.Count > 0 && dsOrders.Tables[1].Rows.Count > 0)
                 {
-                    using (SqlCommand command = new SqlCommand("dbo.GetOrderItems", connection))
+                    foreach (DataRow row in dsOrders.Tables[0].Rows)
                     {
-                        command.CommandType = CommandType.StoredProcedure;
-                        SqlParameter param = new SqlParameter();
-                        param.ParameterName = "@order_id";
-                        param.Value = item.OrderID;
-                        param.DbType = DbType.Int32;
-                        command.Parameters.Add(param);
-                        // TODO: Add Error Logging for Users
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                var food = new FoodItem();
-                                food.FoodID = Convert.ToInt32(reader["food_id"]);
-                                food.FoodName = reader["food_name"].ToString();
-                                food.OrderItemID = Convert.ToInt32(reader["id"]);
-                                item.FoodItems.Add(food);
-                            }
-                        }
+                        var order = new Order();
+                        order.OrderID = Convert.ToInt32(row["id"]);
+                        order.UserID = Convert.ToInt32(row["user_id"]);
+                        order.Created = Convert.ToDateTime(row["created_on"]);
+                        order.totalPrice = 0;
+                        orders.Add(order);
                     }
 
-                    foreach (var foodItem in item.FoodItems)
+                    foreach (DataRow row in dsOrders.Tables[1].Rows)
                     {
-                        using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptions", connection))
-                        {
-                            command.CommandType = CommandType.StoredProcedure;
-                            SqlParameter param = new SqlParameter();
-                            param.ParameterName = "@order_item_id";
-                            param.Value = foodItem.OrderItemID;
-                            param.DbType = DbType.Int32;
-                            command.Parameters.Add(param);
-                            // TODO: Add Error Logging for Users
-                            using (SqlDataReader reader = command.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    var option = new CustomizeOptions();
-                                    option.OptionName = reader["option_name"].ToString();
-                                    option.OrderItemOptionID = Convert.ToInt32(reader["id"]);
-                                    foodItem.CustomizeOptions.Add(option);
-                                }
-                            }
-                        }
-
-                        foreach (var option in foodItem.CustomizeOptions)
-                        {
-                            using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptionItems", connection))
-                            {
-                                command.CommandType = CommandType.StoredProcedure;
-                                SqlParameter param = new SqlParameter();
-                                param.ParameterName = "@order_item_option_id";
-                                param.Value = option.OrderItemOptionID;
-                                param.DbType = DbType.Int32;
-                                command.Parameters.Add(param);
-                                // TODO: Add Error Logging for Users
-                                using (SqlDataReader reader = command.ExecuteReader())
-                                {
-                                    while (reader.Read())
-                                    {
-                                        var customizeItem = new CustomizeItem();
-                                        customizeItem.CustomizeOptionItem = reader["order_item_option_item_name"].ToString();
-                                        customizeItem.Price = Convert.ToDecimal(reader["price"]);
-                                        option.OptionItems.Add(customizeItem);
-                                    }
-                                }
-                            }
-                        }
+                        allOrders.OrderCount = Convert.ToInt32(row["latest_order_count"]);
                     }
                 }
             }
-            return orders;
+            UserController.FillOrders(orders, connection);
+            
+
+            allOrders.activeOrders = orders;
+            return allOrders;
         }
     }
-
-    
 }
+
+//foreach (var item in orders)
+//{
+//    using (SqlCommand command = new SqlCommand("dbo.GetOrderItems", connection))
+//    {
+//        command.CommandType = CommandType.StoredProcedure;
+//        SqlParameter param = new SqlParameter();
+//        param.ParameterName = "@order_id";
+//        param.Value = item.OrderID;
+//        param.DbType = DbType.Int32;
+//        command.Parameters.Add(param);
+//        // TODO: Add Error Logging for Users
+//        using (SqlDataReader reader = command.ExecuteReader())
+//        {
+//            while (reader.Read())
+//            {
+//                var food = new FoodItem();
+//                food.FoodID = Convert.ToInt32(reader["food_id"]);
+//                food.FoodName = reader["food_name"].ToString();
+//                food.OrderItemID = Convert.ToInt32(reader["id"]);
+//                item.FoodItems.Add(food);
+//            }
+//        }
+//    }
+
+//    foreach (var foodItem in item.FoodItems)
+//    {
+//        using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptions", connection))
+//        {
+//            command.CommandType = CommandType.StoredProcedure;
+//            SqlParameter param = new SqlParameter();
+//            param.ParameterName = "@order_item_id";
+//            param.Value = foodItem.OrderItemID;
+//            param.DbType = DbType.Int32;
+//            command.Parameters.Add(param);
+//            // TODO: Add Error Logging for Users
+//            using (SqlDataReader reader = command.ExecuteReader())
+//            {
+//                while (reader.Read())
+//                {
+//                    var option = new CustomizeOptions();
+//                    option.OptionName = reader["option_name"].ToString();
+//                    option.OrderItemOptionID = Convert.ToInt32(reader["id"]);
+//                    foodItem.CustomizeOptions.Add(option);
+//                }
+//            }
+//        }
+
+//        foreach (var option in foodItem.CustomizeOptions)
+//        {
+//            using (SqlCommand command = new SqlCommand("dbo.GetOrderItemOptionItems", connection))
+//            {
+//                command.CommandType = CommandType.StoredProcedure;
+//                SqlParameter param = new SqlParameter();
+//                param.ParameterName = "@order_item_option_id";
+//                param.Value = option.OrderItemOptionID;
+//                param.DbType = DbType.Int32;
+//                command.Parameters.Add(param);
+//                // TODO: Add Error Logging for Users
+//                using (SqlDataReader reader = command.ExecuteReader())
+//                {
+//                    while (reader.Read())
+//                    {
+//                        var customizeItem = new CustomizeItem();
+//                        customizeItem.CustomizeOptionItem = reader["order_item_option_item_name"].ToString();
+//                        customizeItem.Price = Convert.ToDecimal(reader["price"]);
+//                        option.OptionItems.Add(customizeItem);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 
