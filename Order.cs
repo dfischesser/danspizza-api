@@ -8,5 +8,6 @@
         public decimal totalPrice { get; set; }
         public int Active { get; set; }
         public DateTime? Created { get; set; }
+        public Account? Account { get; set; } = new Account();
     }
 }

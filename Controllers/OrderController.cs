@@ -283,10 +283,24 @@ namespace Pizza.Controllers
                     foreach (DataRow row in dsOrders.Tables[0].Rows)
                     {
                         var order = new Order();
+                        var account = new Account();
                         order.OrderID = Convert.ToInt32(row["id"]);
                         order.UserID = Convert.ToInt32(row["user_id"]);
                         order.Created = Convert.ToDateTime(row["created_on"]);
                         order.totalPrice = 0;
+
+                        account.UserID = Convert.ToInt32(row["user_id"]);
+                        account.FirstName = row["first_name"].ToString();
+                        account.LastName = row["last_name"].ToString();
+                        account.Email = row["email"].ToString();
+                        account.Phone = row["phone"].ToString();
+                        account.Address1 = row["address1"].ToString();
+                        account.Address2 = row["address2"].ToString();
+                        account.City = row["city"].ToString();
+                        account.State = row["state"].ToString();
+                        account.Zip = row["zip"].ToString();
+                        order.Account = account;
+
                         orders.Add(order);
                     }
 
