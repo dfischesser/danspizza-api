@@ -1,8 +1,8 @@
 # Dan's Pizza API
 .NET Core Web API for Dan's Pizza. This serves as the back-end for Dan's Pizza. The front-end and database repositories are below:
 
-- [Dan's Pizza](https://github.com/dfischesser/danspizza)
-- [PizzaDB](https://github.com/dfischesser/PizzaDB)
+- [Dan's Pizza](https://github.com/dfischesser/danspizza#readme)
+- [PizzaDB](https://github.com/dfischesser/PizzaDB#readme)
 
 This API provides the following data:
 - Full Menu
