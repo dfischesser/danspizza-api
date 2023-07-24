@@ -1,15 +1,24 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
+using System.Net.Http;
 using System.Data;
 using System.Data.Common;
 using System.Net.Sockets;
 using System.Security.Claims;
+using System.Web;
+using System.Buffers.Text;
+using System.Text;
+using System.Diagnostics;
+using RandomDataGenerator.Randomizers;
+using RandomDataGenerator.FieldOptions;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Pizza.Controllers
 {
@@ -25,52 +34,25 @@ namespace Pizza.Controllers
             sqlTools = new SqlTools(_config);
         }
 
-        [HttpPost]
-        [Route("Hash")]
-        public IActionResult GetHash([FromBody] string email)
+        [HttpGet]
+        [Route("Live")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetLive()
         {
             try
             {
-                SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
-                string hash = "";
-                string firstName = "";
-                string role = "";
-                int roleID = 0;
-                int userID = 0;
+                HttpClient client = new();
+                client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+                var json = await client.GetStringAsync("https://www.youtube.com/@fineplus2points");
 
-                DataSet ds = new DataSet();
-                using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
-                {
-                    connection.Open();
-                    using (SqlCommand command = new SqlCommand("dbo.GetHash", connection))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
+                bool isLive = json.Contains("hqdefault_live");
 
-                        SqlParameter param = new SqlParameter();
-                        param.ParameterName = "@email";
-                        param.Value = email;
-                        param.DbType = DbType.String;
-                        command.Parameters.Add(param);
-                        // TODO: Add Error Logging for Users
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                hash = reader["password"].ToString() ?? "";
-                                firstName = reader["first_name"].ToString() ?? "";
-                                roleID = Convert.ToInt32(reader["role_id"].ToString() ?? "");
-                                userID = Convert.ToInt32(reader["id"].ToString() ?? "");
-                            }
-                        }
-                    }
-                }
-                role = _config["Roles:" + roleID] ?? "";
-                return Ok(new { hash, firstName, role, userID });
-            }
-            catch (Exception ex)
+                return Ok(new { message = isLive });
+            } 
+            catch (Exception ex) 
             {
-                sqlTools.Logamuffin("Account", "Error", "Error Getting Account for user " + email, ex.Message);
-                return NotFound(new { message = "Error Getting Account for user " + email });
+                sqlTools.Logamuffin("Account", "Error", "Error Checking Live", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
+                return NotFound(new { message = "Error Checking Live" });
             }
         }
 
@@ -95,7 +77,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Account", "Error", "Error Getting Order Page " + page + " for user " + currentUser.Email, ex.Message);
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Order Page " + page + " for user " + currentUser.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound(new { message = "Error Getting Order Page " + page + " for user " + currentUser.Email });
             }
         }
@@ -157,12 +139,12 @@ namespace Pizza.Controllers
                     account.OrderCount = allOrders.OrderCount;
 
                 }
-                sqlTools.Logamuffin("Account (GetUserByEmail)", "System", "Retrieved Account for " + account.Email + ". User ID: " + account.UserID);
+                sqlTools.Logamuffin("Account (GetUserByEmail)", "System", "Retrieved Account for " + account.Email + ". User ID: " + account.UserID, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return Ok(account);
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Account", "Error", "Error Getting Account for user " + currentUser.Email, ex.Message);
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Account for user " + currentUser.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound(account);
             }
         }
@@ -246,7 +228,6 @@ namespace Pizza.Controllers
                 }
             }
         }
-
         private void GetUserOrders(AllOrders allOrders, UserModel currentUser, SqlConnection connection, int page)
         {
 
@@ -315,7 +296,221 @@ namespace Pizza.Controllers
             } 
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Account", "Error", "Error Getting Orders for user " + currentUser.Email, ex.Message);
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Orders for user " + currentUser.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
+            }
+        }
+
+        private string GetRoad(int num)
+        {
+            string road = "";
+            switch (num)
+            {
+                case 1:
+                    road = "Street";
+                    break;
+                case 2:
+                    road = "Avenue";
+                    break;
+                case 3:
+                    road = "Drive";
+                    break;
+                case 4:
+                    road = "Court";
+                    break;
+                case 5:
+                    road = "Lane";
+                    break;
+                case 6:
+                    road = "Terrace";
+                    break;
+                case 7:
+                    road = "Way";
+                    break;
+                default:
+                    road = "Road";
+                    break;
+            }
+            return road;
+        }
+
+        private int GetRandomInt(int min, int max)
+        {
+            var randomInt = RandomizerFactory.GetRandomizer(new FieldOptionsInteger() { Min = min, Max = max });
+            return randomInt.Generate() ?? 0;
+        }
+
+        [HttpPost]
+        [Route("CreateRandom")]
+        [AllowAnonymous]
+        public IActionResult CreateRandomUser([FromBody] int role)
+        {
+            SqlTools sqlTools = new SqlTools(_config);
+            var clientIP = Request.HttpContext.Connection.RemoteIpAddress;
+            
+            string emailer = "";
+            try
+            {
+                string regex = @"^(\+1){1}(\s[1-9]{3}){2}(\s[1-9]{4}){1}";
+                List<string> states = new List<string>() { "AK", "AL", "AR", "AS", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "GU", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VI", "VT", "WA", "WI", "WV", "WY" };
+                var randomfName = RandomizerFactory.GetRandomizer(new FieldOptionsFirstName());
+                string firstName = randomfName.Generate();
+
+                var randomlName = RandomizerFactory.GetRandomizer(new FieldOptionsLastName());
+                string lastName = randomlName.Generate();
+
+                var randomPhone = RandomizerFactory.GetRandomizer(new FieldOptionsTextRegex { UseNullValues = false, Pattern = regex });
+                string phone = randomPhone.Generate().Replace("\t", " ");
+
+                int intyboi = GetRandomInt(1000, 9999);
+
+                int addrNum = GetRandomInt(1, 999);
+
+                int roadyboi = GetRandomInt(1, 7);
+
+                var randomAddr = RandomizerFactory.GetRandomizer(new FieldOptionsTextWords { Max = 1 });
+                string addr2 = randomAddr.Generate();
+                addr2 = char.ToUpper(addr2[0]) + addr2[1..];
+                addr2 += " " + GetRoad(roadyboi);
+
+                var randomCity = RandomizerFactory.GetRandomizer(new FieldOptionsCity());
+                var cityboi = randomCity.Generate();
+
+
+                int stater = GetRandomInt(1, 50);
+
+                int zipper = GetRandomInt(10501, 99950);
+
+                emailer = firstName + "." + lastName + intyboi.ToString() + "@danspizza.dev";
+
+                var randomPass = RandomizerFactory.GetRandomizer(new FieldOptionsTextWords { Min = 2, Max = 2 });
+                string pass = randomPass.Generate().Replace(" ", "");
+                pass += GetRandomInt(10, 99).ToString().Replace(" ", "");
+
+                Account account = new Account();
+                account.FirstName = firstName;
+                account.LastName = lastName;
+                account.Address1 = addrNum.ToString();
+                account.Address2 = addr2;
+                account.City = cityboi;
+                account.State = states[stater];
+                account.Zip = zipper.ToString();
+
+                string hash = BCrypt.Net.BCrypt.HashPassword(pass);
+                int id = 0;
+
+
+                SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
+                DataSet ds = new DataSet();
+                using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
+                {
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand("dbo.CreateRandomUser", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        SqlParameter param = new SqlParameter();
+                        param.ParameterName = "@first_name";
+                        param.Value = firstName;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@last_name";
+                        param.Value = lastName;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@email";
+                        param.Value = emailer;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@password";
+                        param.Value = hash;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@role_id";
+                        param.Value = role;
+                        param.DbType = DbType.Int32;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@phone";
+                        param.Value = phone;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@address1";
+                        param.Value = addrNum.ToString();
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@address2";
+                        param.Value = addr2;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@city";
+                        param.Value = cityboi;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@state";
+                        param.Value = states[stater];
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        param = new SqlParameter();
+                        param.ParameterName = "@zip";
+                        param.Value = zipper;
+                        param.DbType = DbType.String;
+                        command.Parameters.Add(param);
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                id = Convert.ToInt32(reader["user_id"]);
+                            }
+                        }
+                    }
+                }
+
+                Token token = new Token();
+
+                token = sqlTools.TryLogin(new UserLogin { Id = id, Password = pass});
+
+
+                if (token != null)
+                {
+                    CookieOptions cookieOptions = new()
+                    {
+                        Expires = DateTimeOffset.Now.AddDays(15),
+                        MaxAge = TimeSpan.FromDays(15),
+                        HttpOnly = true
+                    };
+                    var response = new HttpResponseMessage();
+
+                    HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+
+                }
+
+                sqlTools.Logamuffin("CreateRandom", "System", "Created Random account Account. UserID " + id, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
+                return Ok( new { message = "Login Success", email = emailer, password = pass });
+                
+                
+            }
+            catch (Exception ex)
+            {
+                sqlTools.Logamuffin("Create", "Error", "Error Creating Account for user ", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
+                return new NotFoundObjectResult(new { message = "Error Creating Account for userID " + emailer});
             }
         }
 
@@ -405,14 +600,14 @@ namespace Pizza.Controllers
                     }
                     else
                     {
-                        sqlTools.Logamuffin("Create", "Error", "Email already exists for user " + userLogin.Email);
+                        sqlTools.Logamuffin("Create", "Error", "Email already exists for user " + userLogin.Email, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                         return new NotFoundObjectResult(new { message = "Email already exists" });
                     }
                 }
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Create", "Error", "Error Creating Account for user " + userLogin.Email, ex.Message);
+                sqlTools.Logamuffin("Create", "Error", "Error Creating Account for user " + userLogin.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return new NotFoundObjectResult(new { message = "Error Creating Account for user " + userLogin.Email });
             }
         }
@@ -525,10 +720,13 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Create", "Error", "Error Creating Account Step 2 for user " + currentUser.UserFirstName, ex.Message);
+                sqlTools.Logamuffin("Create", "Error", "Error Creating Account Step 2 for user " + currentUser.UserFirstName, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return new NotFoundObjectResult(new { message = "Error Creating Account Step 2 for user " + currentUser.UserFirstName });
             }
         }
+
+        
+        
     }
 }
 

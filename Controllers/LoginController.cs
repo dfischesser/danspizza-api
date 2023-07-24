@@ -32,7 +32,6 @@ namespace Pizza.Controllers
             sqlTools = new SqlTools(_config);
         }
 
-
         [AllowAnonymous]
         [HttpPost]
         public ActionResult Login([FromBody] UserLogin userLogin)
@@ -64,7 +63,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex) 
             {
-                sqlTools.Logamuffin("Login", "Error", "Error Logging in user " + userLogin.Email + ". Token: " + token, ex.Message);
+                sqlTools.Logamuffin("Login", "Error", "Error Logging in user " + userLogin.Email + ". Token: " + token, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound("{\"error\": \"Error logging in.\"}");
             }
         }

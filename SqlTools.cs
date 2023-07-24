@@ -1,9 +1,11 @@
 ﻿using Azure;
 using Microsoft.Data.SqlClient;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -15,6 +17,7 @@ namespace Pizza
 
         //this field gets initialized at Startup.cs
         public static string conStr;
+        public static string JWT;
 
         private readonly IConfiguration _config;
 
@@ -65,7 +68,7 @@ namespace Pizza
 
         private string GenerateToken(UserModel user)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
@@ -75,8 +78,7 @@ namespace Pizza
                 new Claim("userID", user.UserID)
 
             };
-            var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-                _config["Jwt:Audience"],
+            var token = new JwtSecurityToken("Dan's Pizza - danspizza.dev", "Dan's Pizza User - danspizza.dev",
                 claims,
                 expires: DateTime.Now.AddDays(15),
                 signingCredentials: credentials);
@@ -141,7 +143,7 @@ namespace Pizza
                                         Email = reader["email"].ToString(),
                                         Password = reader["password"].ToString(),
                                         Role = reader["role"].ToString(),
-                                        UserID = reader["id"].ToString(),
+                                        UserID = reader["user_id"].ToString(),
                                         UserFirstName = reader["first_name"].ToString()
                                     };
                                 }
@@ -169,7 +171,7 @@ namespace Pizza
             }
             catch (Exception ex)
             {
-                Logamuffin("Authenticate (GetUserByEmail)", "Error", "Error Authenticating user " + userLogin.Email, ex.Message);
+                Logamuffin("Authenticate (GetUserByEmail)", "Error", "Error Authenticating user " + userLogin.Email, error: ex.Message);
                 return userModel;
             }
         }
@@ -191,6 +193,7 @@ namespace Pizza
             return null;
         }
 
+
         public SqlConnectionStringBuilder CreateConnectionString()
         {
             sqlBuilder.ConnectionString = conStr;
@@ -198,8 +201,10 @@ namespace Pizza
             return sqlBuilder;
         }
 
-        public void Logamuffin(string calledby, string type, string message, string error = "")
+
+        public void Logamuffin(string calledby, string type, string message, string error = "", string clientIP = "")
         {
+
             SqlTools sqlTools = new SqlTools();
             SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();;
 
@@ -228,6 +233,11 @@ namespace Pizza
                     param = new SqlParameter();
                     param.ParameterName = "@calledby";
                     param.Value = calledby;
+                    param.DbType = DbType.String;
+                    command.Parameters.Add(param);
+                    param = new SqlParameter();
+                    param.ParameterName = "@client_ip";
+                    param.Value = clientIP.ToString();
                     param.DbType = DbType.String;
                     command.Parameters.Add(param);
 

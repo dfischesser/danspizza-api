@@ -44,7 +44,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             { 
-                sqlTools.Logamuffin("SearchAddress", "Error", "Error Searching Address", ex.Message);
+                sqlTools.Logamuffin("SearchAddress", "Error", "Error Searching Address", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return "Request Failed";
                 //return NotFound("Search Failed");
             }

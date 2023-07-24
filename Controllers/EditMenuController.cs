@@ -16,6 +16,7 @@ namespace Pizza.Controllers
 
         [HttpGet]
         [Route("LoadDB")]
+        [Authorize(Roles = "Employee")]
         public IActionResult LoadDB()
         {
             var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
@@ -37,7 +38,6 @@ namespace Pizza.Controllers
                     rec = records.ToList();
                 }
 
-                //string constring = "Data Source=FUSER;Initial Catalog=PizzaLoad;User ID=fuser;Password=goverbose;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False";
                 using (SqlConnection connection = new SqlConnection(sqlBuilder.ConnectionString))
                 {
                     connection.Open();
@@ -254,7 +254,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Menu", "Error", "Error Loading Menu: ", ex.Message);
+                sqlTools.Logamuffin("Menu", "Error", "Error Loading Menu: ", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound();
             }
         }
@@ -350,7 +350,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Menu", "Error", "Error Getting Food Items for User: " + currentUser.Email, ex.Message);
+                sqlTools.Logamuffin("Menu", "Error", "Error Getting Food Items for User: " + currentUser.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound(foodItems);
             }
         }
@@ -414,7 +414,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Menu", "Error", "Error Getting Option Items for food " + foodID + ". User: " + currentUser.Email, ex.Message);
+                sqlTools.Logamuffin("Menu", "Error", "Error Getting Option Items for food " + foodID + ". User: " + currentUser.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound(customizeItems);
             }
         }

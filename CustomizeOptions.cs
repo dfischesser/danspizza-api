@@ -9,6 +9,7 @@
         public bool? IsDefaultOption { get; set; }
         public int? OrderItemOptionID { get; set; }
         public int? OptionOrder { get; set; }
+        public decimal? Price { get; set; }
         public DateTime? CreatedOn { get; set; }
         public DateTime? ModifiedOn { get; set; }
     }

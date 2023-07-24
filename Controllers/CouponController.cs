@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.VisualBasic;
 using System.Data;
 using System.Diagnostics;
 
@@ -61,7 +62,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("GetCoupon", "Error", "Error Getting Coupon", ex.Message);
+                sqlTools.Logamuffin("GetCoupon", "Error", "Error Getting Coupon", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound(coupons);
             }
         } 

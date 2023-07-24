@@ -1,0 +1,52 @@
+{
+  "dependencies": {
+    "secrets2": {
+      "restored": true,
+      "restoreTime": "2023-07-20T02:22:26.4979066Z"
+    },
+    "mssql1": {
+      "restored": true,
+      "restoreTime": "2023-07-20T02:22:52.2609097Z"
+    },
+    "secrets1": {
+      "restored": true,
+      "restoreTime": "2023-07-20T02:19:16.0022323Z"
+    },
+    "appInsights1": {
+      "restored": true,
+      "restoreTime": "2023-07-20T02:19:28.2958654Z"
+    }
+  },
+  "parameters": {
+    "mssql1.subscriptionId": {
+      "Name": "mssql1.subscriptionId",
+      "Type": "subscription",
+      "Value": "ec998131-fce5-41a2-8513-7fa6a60b726f"
+    },
+    "secrets2.resourceGroupName": {
+      "Name": "secrets2.resourceGroupName",
+      "Type": "resourceGroup",
+      "Value": "danspizza_group"
+    },
+    "secrets2.subscriptionId": {
+      "Name": "secrets2.subscriptionId",
+      "Type": "subscription",
+      "Value": "ec998131-fce5-41a2-8513-7fa6a60b726f"
+    },
+    "appInsights1.resourceGroupName": {
+      "Name": "appInsights1.resourceGroupName",
+      "Type": "resourceGroup",
+      "Value": "danspizza_group"
+    },
+    "mssql1.resourceGroupName": {
+      "Name": "mssql1.resourceGroupName",
+      "Type": "resourceGroup",
+      "Value": "danspizza_group"
+    },
+    "appInsights1.subscriptionId": {
+      "Name": "appInsights1.subscriptionId",
+      "Type": "subscription",
+      "Value": "ec998131-fce5-41a2-8513-7fa6a60b726f"
+    }
+  }
+}

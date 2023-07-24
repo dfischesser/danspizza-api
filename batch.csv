@@ -1,23 +1,23 @@
-﻿food_type,menu_category_id,food,customize_option,food_id,customize_option_item,price,is_multi_select,is_default_option
+food_type,menu_category_id,food,customize_option,food_id,customize_option_item,price,is_multi_select,is_default_option
 Pizza,1,Hand-Tossed Pizza,Size,1,Small,16.99,0,1
 Pasta,1,Thin Crust Pizza,Size,1,Large,18.99,0,1
 Salad,1,Sicilian Pizza,Size,1,X-Large,20.99,0,1
 Soup,2,Pasta Francese,Toppings,1,Cheese,0,1,0
 Sides,2,Pasta Marsala,Toppings,1,Extra Cheese,2,1,0
-Dessert,2,Pasta Alfredo,Toppings,1,Pepperoni,2,1,0
-,3,Side Salad,Toppings,1,Sausage,2,1,0
+Drinks,2,Pasta Alfredo,Toppings,1,Pepperoni,2,1,0
+Dessert,3,Side Salad,Toppings,1,Sausage,2,1,0
 ,3,House Salad,Toppings,1,Ham,2,1,0
 ,3,Caesar Salad,Toppings,1,Olives,2,1,0
 ,4,Pasta E Fagioli,Toppings,1,Mushrooms,2,1,0
 ,4,Minestrone,Toppings,1,Pineapple,2,1,0
 ,5,Fries,Size,2,Medium,16.99,0,1
 ,5,Wings,Size,2,Large,18.99,0,1
-,5,Drinks,Size,2,X-Large,20.99,0,1
-,6,NY Cheesecake,Toppings,2,Cheese,0,1,0
-,6,Cannoli,Toppings,2,Extra Cheese,2,1,0
-,6,Ice Cream,Toppings,2,Pepperoni,2,1,0
-,,,Toppings,2,Sausage,2,1,0
-,,,Toppings,2,Ham,2,1,0
+,6,Two Liter Beverages,Size,2,X-Large,20.99,0,1
+,6,12 oz Cans,Toppings,2,Cheese,0,1,0
+,6,Fountain,Toppings,2,Extra Cheese,2,1,0
+,7,NY Cheesecake,Toppings,2,Pepperoni,2,1,0
+,7,Cannoli,Toppings,2,Sausage,2,1,0
+,7,Ice Cream,Toppings,2,Ham,2,1,0
 ,,,Toppings,2,Olives,2,1,0
 ,,,Toppings,2,Mushrooms,2,1,0
 ,,,Toppings,2,Pineapple,2,1,0
@@ -96,23 +96,23 @@ Dessert,2,Pasta Alfredo,Toppings,1,Pepperoni,2,1,0
 ,,,Two Liter Beverages,14,Coke,2.99,0,0
 ,,,Two Liter Beverages,14,Diet Coke,2.99,0,0
 ,,,Two Liter Beverages,14,Sprite,2.99,0,0
-,,,12 oz Cans,14,Coke,1.25,0,0
-,,,12 oz Cans,14,Diet Coke,1.25,0,0
-,,,12 oz Cans,14,Coke Zero,1.25,0,0
-,,,12 oz Cans,14,Sprite,1.25,0,0
-,,,12 oz Cans,14,Diet Sprite,1.25,0,0
-,,,12 oz Cans,14,Root Beer,1.25,0,0
-,,,12 oz Cans,14,Cream Soda,1.25,0,0
-,,,Fountain,14,Coke,1.99,0,0
-,,,Fountain,14,Diet Coke,1.99,0,0
-,,,Fountain,14,Coke Zero,1.99,0,0
-,,,Fountain,14,Sprite,1.99,0,0
-,,,Fountain,14,Diet Sprite,1.99,0,0
-,,,Fountain,14,Iced Tea,1.99,0,0
-,,,Fountain,14,Fresh Lemonade,1.99,0,0
-,,,NY Cheesecake,15,NY Cheesecake,4.99,0,0
-,,,Cannoli,16,Cannoli,4.99,0,0
-,,,Ice Cream,17,Vanilla,3.99,0,0
-,,,Ice Cream,17,Chocolate,3.99,0,0
-,,,Ice Cream,17,Strawberry,3.99,0,0
-,,,Ice Cream,17,Cookies & Cream,3.99,0,0
+,,,12 oz Cans,15,Coke,1.25,0,0
+,,,12 oz Cans,15,Diet Coke,1.25,0,0
+,,,12 oz Cans,15,Coke Zero,1.25,0,0
+,,,12 oz Cans,15,Sprite,1.25,0,0
+,,,12 oz Cans,15,Diet Sprite,1.25,0,0
+,,,12 oz Cans,15,Root Beer,1.25,0,0
+,,,12 oz Cans,15,Cream Soda,1.25,0,0
+,,,Fountain,16,Coke,1.99,0,0
+,,,Fountain,16,Diet Coke,1.99,0,0
+,,,Fountain,16,Coke Zero,1.99,0,0
+,,,Fountain,16,Sprite,1.99,0,0
+,,,Fountain,16,Diet Sprite,1.99,0,0
+,,,Fountain,16,Iced Tea,1.99,0,0
+,,,Fountain,16,Fresh Lemonade,1.99,0,0
+,,,NY Cheesecake,17,NY Cheesecake,4.99,0,0
+,,,Cannoli,18,Cannoli,4.99,0,0
+,,,Ice Cream,19,Vanilla,3.99,0,0
+,,,Ice Cream,19,Chocolate,3.99,0,0
+,,,Ice Cream,19,Strawberry,3.99,0,0
+,,,Ice Cream,19,Cookies & Cream,3.99,0,0

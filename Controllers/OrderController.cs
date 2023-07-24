@@ -47,6 +47,12 @@ namespace Pizza.Controllers
                             param.DbType = DbType.Int32;
                             command.Parameters.Add(param);
 
+                            param = new SqlParameter();
+                            param.ParameterName = "@price";
+                            param.Value = Convert.ToDecimal(items.Aggregate(new Decimal?(0), (total, next) => total + next.Price)) * new decimal(1.0725);
+                            param.DbType = DbType.Decimal;
+                            command.Parameters.Add(param);
+
                             var reader = command.ExecuteReader();
                             while (reader.Read()) 
                             {
@@ -80,6 +86,12 @@ namespace Pizza.Controllers
                                 param.DbType = DbType.String;
                                 command.Parameters.Add(param);
 
+                                param = new SqlParameter();
+                                param.ParameterName = "@price";
+                                param.Value = item.Price;
+                                param.DbType = DbType.Decimal;
+                                command.Parameters.Add(param);
+
                                 var reader = command.ExecuteReader();
                                 while (reader.Read())
                                 {
@@ -106,6 +118,13 @@ namespace Pizza.Controllers
                                         param.Value = option.OptionName;
                                         param.DbType = DbType.String;
                                         command.Parameters.Add(param);
+
+                                        param = new SqlParameter();
+                                        param.ParameterName = "@price";
+                                        param.Value = Convert.ToDecimal(item.CustomizeOptions.Aggregate(new Decimal?(0), (total, next) => total + next.Price));
+                                        param.DbType = DbType.Decimal;
+                                        command.Parameters.Add(param);
+
 
                                         var reader = command.ExecuteReader();
                                         while (reader.Read())
@@ -142,7 +161,7 @@ namespace Pizza.Controllers
                                 }
                                 catch (Exception ex)
                                 {
-                                    sqlTools.Logamuffin("Post Order (Create Order Item Customize)", "Error", "Error Creating Order Item Customization", ex.Message);
+                                    sqlTools.Logamuffin("Post Order (Create Order Item Customize)", "Error", "Error Creating Order Item Customization", error:  ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                                     return NotFound("Order item customization failed to create");
                                 }
                             }
@@ -151,14 +170,14 @@ namespace Pizza.Controllers
                     }
                     catch (Exception ex)
                     {
-                        sqlTools.Logamuffin("Post Order (Create Order)", "Error", "Error Creating Order", ex.Message);
+                        sqlTools.Logamuffin("Post Order (Create Order)", "Error", "Error Creating Order", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                         return NotFound("Order failed to create");
                     }
                 }
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Post Order", "Error", "Error Creating Order", ex.Message);
+                sqlTools.Logamuffin("Post Order", "Error", "Error Creating Order", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound("{\"error\": \"Order Post Failed\"}");
             }
         }
@@ -184,7 +203,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Account", "Error", "Error Getting Order Page " + page + " for user " + currentUser.Email, ex.Message);
+                sqlTools.Logamuffin("Account", "Error", "Error Getting Order Page " + page + " for user " + currentUser.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound(new { message = "Error Getting Order Page " + page + " for user " + currentUser.Email });
             }
         }
@@ -219,12 +238,12 @@ namespace Pizza.Controllers
                     }
                 allOrders = GetLatestOrders(connection);
                 }
-                sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "System", "Retrieved Orders for " + currentUser.UserID);
+                sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "System", "Retrieved Orders for " + currentUser.UserID, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return Ok(allOrders.activeOrders);
             } 
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Fulfill Order (FullfillOrder)", "Error", "Error Fulfilling order for: " + currentUser.Email, ex.Message);
+                sqlTools.Logamuffin("Fulfill Order (FullfillOrder)", "Error", "Error Fulfilling order for: " + currentUser.Email, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound("Order failed to fulfill");
             }
 
@@ -246,12 +265,12 @@ namespace Pizza.Controllers
                     connection.Open();
                     allOrders = GetLatestOrders(connection);
                 }
-                sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "System", "Retrieved Orders for " + currentUser.UserID);
+                sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "System", "Retrieved Orders for " + currentUser.UserID, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return Ok(allOrders);
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "Error", "Error retrieving Orders for " + currentUser.UserID, ex.Message);
+                sqlTools.Logamuffin("Manage Orders (GetLatestOrders)", "Error", "Error retrieving Orders for " + currentUser.UserID, error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound("Could not retrieve orders");
             }
         }

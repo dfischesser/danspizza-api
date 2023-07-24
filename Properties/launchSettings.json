@@ -5,7 +5,9 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SQLConnString": "https://pizzakeys.vault.azure.net/",
+        "AZURE_USERNAME": "dfischesser@gmail.com"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5230"
@@ -15,7 +17,9 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SQLConnString": "https://pizzakeys.vault.azure.net/",
+        "AZURE_USERNAME": "dfischesser@gmail.com"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7074;http://localhost:5230"
@@ -25,7 +29,9 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SQLConnString": "https://pizzakeys.vault.azure.net/",
+        "AZURE_USERNAME": "dfischesser@gmail.com"
       }
     },
     "Pizza": {
@@ -34,7 +40,9 @@
       "launchBrowser": true,
       "launchUrl": "http://localhost:5753/swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SQLConnString": "https://pizzakeys.vault.azure.net/",
+        "AZURE_USERNAME": "dfischesser@gmail.com"
       },
       "nativeDebugging": false
     }

@@ -20,6 +20,7 @@ namespace Pizza.Controllers
         {
             try
             {
+
                 SqlConnectionStringBuilder sqlBuilder = sqlTools.CreateConnectionString();
                 DataSet dsCategories = new DataSet();
                 DataSet dsFood = new DataSet();
@@ -153,7 +154,7 @@ namespace Pizza.Controllers
             }
             catch (Exception ex)
             {
-                sqlTools.Logamuffin("Menu", "Error", "Error Getting Menu", ex.Message);
+                sqlTools.Logamuffin("Menu", "Error", "Error Getting Menu", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
                 return NotFound(menuCategories);
             }
         }
