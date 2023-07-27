@@ -8,14 +8,14 @@
       "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING",
       "dynamicId": null
     },
-    "secrets2": {
-      "type": "secrets",
-      "connectionId": "SQLConnString"
-    },
     "mssql1": {
       "type": "mssql",
       "connectionId": "ConnectionStrings:AZURE_SQL_CONNECTIONSTRING",
       "dynamicId": null
+    },
+    "secrets2": {
+      "type": "secrets",
+      "connectionId": "SQLConnString"
     }
   }
 }

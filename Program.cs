@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
+using System;
 using Microsoft.Net.Http.Headers;
 using Pizza;
 using System.Text;
@@ -10,11 +11,22 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using Azure.Identity;
 using Azure.Core;
 using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("SQLConnString"));
-builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+//var keyVaultEndpoint = new Uri("https://pizzakeys.vault.azure.net/");
+//builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+
+string AppUrl = ""; 
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+{
+    AppUrl = "http://localhost:3000";
+}
+else
+{
+    AppUrl = "https://danspizza.dev";
+}
 
 builder.Services.AddCors(options =>
 {
@@ -22,7 +34,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             //policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-            policy.WithOrigins("http://localhost:3000").AllowCredentials().WithHeaders(new string[] { "content-type", "Authentication" });
+            policy.WithOrigins(new string[] { AppUrl }).AllowCredentials().WithHeaders(new string[] { "content-type", "Authentication" });
         });
 });
 
@@ -43,6 +55,7 @@ SecretClientOptions options = new SecretClientOptions()
          }
 };
 var client = new SecretClient(new Uri("https://pizzakeys.vault.azure.net/"), new DefaultAzureCredential(), options);
+builder.Configuration.AddAzureKeyVault(client, new KeyVaultSecretManager());
 
 KeyVaultSecret CSsecret = await client.GetSecretAsync("ConnString");
 SqlTools.conStr = CSsecret.Value;
@@ -69,8 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     {
         OnMessageReceived = context =>
         {
-            Debug.WriteLine(context.Request.Cookies["token"]);
-            context.Token = context.Request.Cookies["token"];
+            context.Token = context.Request.Cookies["serverToken"];
             return Task.CompletedTask;
         }
     };

@@ -51,6 +51,8 @@ namespace Pizza
             if (user != null)
             {
                 token.UserToken = GenerateToken(user);
+                token.UserRole = user.Role;
+                token.UserFirstName = user.UserFirstName;
                 return token;
             }
             return null;
@@ -58,7 +60,7 @@ namespace Pizza
 
         public Token Step2Token(UserModel userModel)
         {
-            return new Token() { UserToken = GenerateToken(userModel) };
+            return new Token() { UserToken = GenerateToken(userModel), UserRole = userModel.Role, UserFirstName = userModel.UserFirstName };
         }
 
         //new Claim("email", user.Email),

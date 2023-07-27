@@ -31,7 +31,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "SQLConnString": "https://pizzakeys.vault.azure.net/",
-        "AZURE_USERNAME": "dfischesser@gmail.com"
+        "AZURE_USERNAME": "dfischesser@gmail.com",
+        "PIZZA_URL": "http://localhost:3000"
       }
     },
     "Pizza": {

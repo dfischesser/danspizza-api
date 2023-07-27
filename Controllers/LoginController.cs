@@ -34,6 +34,7 @@ namespace Pizza.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [Route("Post")]
         public ActionResult Login([FromBody] UserLogin userLogin)
         {
             Token token = new Token();
@@ -46,15 +47,21 @@ namespace Pizza.Controllers
                 {
                     CookieOptions cookieOptions = new()
                     {
+                        Expires = DateTimeOffset.Now.AddDays(15)
+                    };
+                    CookieOptions cookieOptionsToken = new()
+                    {
                         Expires = DateTimeOffset.Now.AddDays(15),
-                        MaxAge = TimeSpan.FromDays(15),
-                        HttpOnly = true
+                        HttpOnly = true,
+                        Secure = true
                     };
                     var response = new HttpResponseMessage();
 
-                    HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+                    HttpContext.Response.Cookies.Append("serverToken", token.UserToken, cookieOptionsToken);
+                    HttpContext.Response.Cookies.Append("firstName", token.UserFirstName, cookieOptions);
+                    HttpContext.Response.Cookies.Append("role", token.UserRole, cookieOptions);
 
-                    return Ok(new {message = "Login Success"});
+                    return Ok(new {firstName = token.UserFirstName, role = token.UserRole});
                 }
                 else
                 {
@@ -67,6 +74,26 @@ namespace Pizza.Controllers
                 return NotFound("{\"error\": \"Error logging in.\"}");
             }
         }
-        
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("Logout")]
+        public ActionResult Logout()
+        {
+            try
+            {
+                var currentUser = sqlTools.GetCurrentUser(HttpContext.User);
+                HttpContext.Response.Cookies.Delete("serverToken");
+                HttpContext.Response.Cookies.Delete("firstName");
+                HttpContext.Response.Cookies.Delete("role");
+                return Ok(new { message = "logout success" });                
+            }
+            catch (Exception ex)
+            {
+                sqlTools.Logamuffin("Login", "Error", "Error Logging out user", error: ex.Message, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
+                return NotFound("{\"error\": \"Error logging in.\"}");
+            }
+        }
+
     }
 }

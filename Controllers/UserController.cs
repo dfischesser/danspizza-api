@@ -492,20 +492,26 @@ namespace Pizza.Controllers
                 {
                     CookieOptions cookieOptions = new()
                     {
+                        Expires = DateTimeOffset.Now.AddDays(15)
+                    };
+                    CookieOptions cookieOptionsToken = new()
+                    {
                         Expires = DateTimeOffset.Now.AddDays(15),
-                        MaxAge = TimeSpan.FromDays(15),
-                        HttpOnly = true
+                        HttpOnly = true,
+                        Secure = true
                     };
                     var response = new HttpResponseMessage();
 
-                    HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+                    HttpContext.Response.Cookies.Append("serverToken", token.UserToken, cookieOptionsToken);
+                    HttpContext.Response.Cookies.Append("firstName", token.UserFirstName, cookieOptions);
+                    HttpContext.Response.Cookies.Append("role", token.UserRole, cookieOptions);
 
                 }
 
                 sqlTools.Logamuffin("CreateRandom", "System", "Created Random account Account. UserID " + id, clientIP: Request.HttpContext.Connection.RemoteIpAddress.ToString());
-                return Ok( new { message = "Login Success", email = emailer, password = pass });
-                
-                
+                return Ok( new { message = "Login Success", email = emailer, password = pass, firstName = token.UserFirstName, role = token.UserRole });
+
+
             }
             catch (Exception ex)
             {
@@ -586,17 +592,23 @@ namespace Pizza.Controllers
                         {
                             CookieOptions cookieOptions = new()
                             {
+                                Expires = DateTimeOffset.Now.AddDays(15)
+                            };
+                            CookieOptions cookieOptionsToken = new()
+                            {
                                 Expires = DateTimeOffset.Now.AddDays(15),
-                                MaxAge = TimeSpan.FromDays(15),
-                                HttpOnly = true
+                                HttpOnly = true,
+                                Secure = true
                             };
                             var response = new HttpResponseMessage();
 
-                            HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+                            HttpContext.Response.Cookies.Append("serverToken", token.UserToken, cookieOptionsToken);
+                            HttpContext.Response.Cookies.Append("firstName", token.UserFirstName, cookieOptions);
+                            HttpContext.Response.Cookies.Append("role", token.UserRole, cookieOptions);
 
                         }
 
-                        return Ok(new { message = "Login Success" });
+                        return Ok(new { firstName = token.UserFirstName, role = token.UserRole });
                     }
                     else
                     {
@@ -704,17 +716,23 @@ namespace Pizza.Controllers
                 {
                     CookieOptions cookieOptions = new()
                     {
+                        Expires = DateTimeOffset.Now.AddDays(15)
+                    };
+                    CookieOptions cookieOptionsToken = new()
+                    {
                         Expires = DateTimeOffset.Now.AddDays(15),
-                        MaxAge = TimeSpan.FromDays(15),
-                        HttpOnly = true
+                        HttpOnly = true,
+                        Secure = true
                     };
                     var response = new HttpResponseMessage();
 
-                    HttpContext.Response.Cookies.Append("token", token.UserToken, cookieOptions);
+                    HttpContext.Response.Cookies.Append("serverToken", token.UserToken, cookieOptionsToken);
+                    HttpContext.Response.Cookies.Append("firstName", token.UserFirstName, cookieOptions);
+                    HttpContext.Response.Cookies.Append("role", token.UserRole, cookieOptions);
 
                 }
 
-                return Ok(new { message = "Login Success" });
+                return Ok(new { firstName = token.UserFirstName, role = token.UserRole });
 
 
             }
